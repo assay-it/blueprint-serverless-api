@@ -48,7 +48,7 @@ func TestX() assay.Arrow {
 
 	isLordOfTheRings := assay.Join(
 		c.Defined(&book.ID),
-		c.Value(&book.Title).Is("The Lord of the Rings"),
+		c.Value(&book.Title).String("The Lord of the Rings"),
 	)
 
 	return assay.Join(
