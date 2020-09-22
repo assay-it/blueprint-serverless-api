@@ -40,7 +40,7 @@ func create(book *Book) assay.Arrow {
 	return http.Join(
 		ø.POST("%s/books", sut),
 		ø.ContentJSON(),
-		ø.Send(book),
+		ø.Send(&book),
 		ƒ.Code(http.StatusCodeOK),
 		ƒ.Recv(&book),
 	)
@@ -57,9 +57,20 @@ func update(book *Book) assay.Arrow {
 	return http.Join(
 		ø.PUT("%s/books/%s", sut, book.ID),
 		ø.ContentJSON(),
-		ø.Send(book),
+		ø.Send(&book),
 		ƒ.Code(http.StatusCodeOK),
 		ƒ.Recv(&book),
+	)
+}
+
+//
+func Create() assay.Arrow {
+	book := Book{Title: "There and Back Again"}
+
+	return assay.Join(
+		create(&book),
+		c.Defined(&book.ID),
+		c.Value(&book.Title).String("There and Back Again"),
 	)
 }
 
