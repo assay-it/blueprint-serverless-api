@@ -24,7 +24,17 @@ func (seq Books) Swap(i, j int)           { seq[i], seq[j] = seq[j], seq[i] }
 func (seq Books) Less(i, j int) bool      { return seq[i].ID < seq[j].ID }
 func (seq Books) String(i int) string     { return seq[i].ID }
 
+//
+//
 var sut = assay.Host("")
+
+func lookup(book *Book) assay.Arrow {
+	return http.Join(
+		ø.GET("%s/books/%s", sut, book.ID),
+		ƒ.Code(http.StatusCodeOK),
+		ƒ.Recv(&book),
+	)
+}
 
 func create(book *Book) assay.Arrow {
 	return http.Join(
@@ -43,42 +53,40 @@ func remove(id *string) assay.Arrow {
 	)
 }
 
-func TestX() assay.Arrow {
-	book := Book{Title: "The Lord of the Rings"}
-
-	isLordOfTheRings := assay.Join(
-		c.Defined(&book.ID),
-		c.Value(&book.Title).String("The Lord of the Rings"),
-	)
-
-	return assay.Join(
-		create(&book),
-		isLordOfTheRings,
-
-		remove(&book.ID),
-	)
-}
-
-/*
-func (sut *SUT) lookup(books Books) assay.Arrow {
+func update(book *Book) assay.Arrow {
 	return http.Join(
-		ø.GET("%s/books", sut.URL),
-		ƒ.Code(http.StatusCodeOK),
-		ƒ.Recv(&books),
-	)
-}
-
-
-
-
-
-func (sut *SUT) update(book *Book) assay.Arrow {
-	return http.Join(
-		ø.PUT("%s/books/%s", sut.URL, book.ID),
+		ø.PUT("%s/books/%s", sut, book.ID),
 		ø.ContentJSON(),
 		ø.Send(book),
 		ƒ.Code(http.StatusCodeOK),
 		ƒ.Recv(&book),
 	)
 }
-*/
+
+//
+//
+func Lifecycle() assay.Arrow {
+	book := Book{Title: "The Lord of the Rings"}
+
+	return assay.Join(
+		//
+		create(&book),
+		c.Defined(&book.ID),
+		c.Value(&book.Title).String("The Lord of the Rings"),
+
+		//
+		c.FMap(func() error {
+			book.Title = "The Lord of the Flies"
+			return nil
+		}),
+		update(&book),
+		c.Value(&book.Title).String("The Lord of the Flies"),
+
+		//
+		lookup(&book),
+		c.Value(&book.Title).String("The Lord of the Flies"),
+
+		//
+		remove(&book.ID),
+	)
+}
