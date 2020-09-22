@@ -65,13 +65,50 @@ func update(book *Book) assay.Arrow {
 
 //
 func Create() assay.Arrow {
-	book := Book{Title: "There and Back Again"}
+	book := Book{
+		ID:    "book:hobbit",
+		Title: "There and Back Again",
+	}
 
 	return create(&book).
 		Then(
-			c.Defined(&book.ID),
+			c.Value(&book.ID).String("book:hobbit"),
 			c.Value(&book.Title).String("There and Back Again"),
 		)
+}
+
+//
+func Update() assay.Arrow {
+	book := Book{
+		ID:    "book:hobbit",
+		Title: "The Hobbit",
+	}
+
+	return update(&book).
+		Then(
+			c.Value(&book.ID).String("book:hobbit"),
+			c.Value(&book.Title).String("The Hobbit"),
+		)
+}
+
+//
+func Lookup() assay.Arrow {
+	book := Book{
+		ID: "book:hobbit",
+	}
+
+	return lookup(&book).
+		Then(
+			c.Value(&book.ID).String("book:hobbit"),
+			c.Value(&book.Title).String("The Hobbit"),
+		)
+}
+
+//
+func Remove() assay.Arrow {
+	id := "book:hobbit"
+
+	return remove(&id)
 }
 
 //
