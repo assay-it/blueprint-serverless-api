@@ -30,7 +30,7 @@ var sut = assay.Host("")
 
 func lookup(book *Book) assay.Arrow {
 	return http.Join(
-		ø.GET("%s/books/%s", sut, book.ID),
+		ø.GET("%s/books/%s", sut, &book.ID),
 		ƒ.Code(http.StatusCodeOK),
 		ƒ.Recv(&book),
 	)
@@ -55,7 +55,7 @@ func remove(id *string) assay.Arrow {
 
 func update(book *Book) assay.Arrow {
 	return http.Join(
-		ø.PUT("%s/books/%s", sut, book.ID),
+		ø.PUT("%s/books/%s", sut, &book.ID),
 		ø.ContentJSON(),
 		ø.Send(&book),
 		ƒ.Code(http.StatusCodeOK),
@@ -67,31 +67,32 @@ func update(book *Book) assay.Arrow {
 func Create() assay.Arrow {
 	book := Book{Title: "There and Back Again"}
 
-	return assay.Join(
-		create(&book),
-		c.Defined(&book.ID),
-		c.Value(&book.Title).String("There and Back Again"),
-	)
+	return create(&book).
+		Then(
+			c.Defined(&book.ID),
+			c.Value(&book.Title).String("There and Back Again"),
+		)
 }
 
-//
 //
 func Lifecycle() assay.Arrow {
 	book := Book{Title: "The Lord of the Rings"}
 
 	return assay.Join(
 		//
-		create(&book),
-		c.Defined(&book.ID),
-		c.Value(&book.Title).String("The Lord of the Rings"),
+		create(&book).Then(
+			c.Defined(&book.ID),
+			c.Value(&book.Title).String("The Lord of the Rings"),
+		),
 
 		//
 		c.FMap(func() error {
 			book.Title = "The Lord of the Flies"
 			return nil
 		}),
-		update(&book),
-		c.Value(&book.Title).String("The Lord of the Flies"),
+		update(&book).Then(
+			c.Value(&book.Title).String("The Lord of the Flies"),
+		),
 
 		//
 		lookup(&book),
